@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diamond - V22</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Diamond - V24 PNG</title>
     <style>
         :root { 
             --gold: #ffd700; 
@@ -16,22 +16,27 @@
                 --cell: 14.5vw;
                 --gap: 3px;
             }
-            .stats-container { margin-bottom: 10px !important; }
-            #spin-btn, #reset-btn { width: 85% !important; padding: 16px !important; margin-top: 15px !important; }
-            .log { height: 100px !important; font-size: 0.8rem !important; width: 90% !important; }
+            #spin-btn, #reset-btn { width: 90% !important; padding: 14px !important; }
+        }
+
+        /* Fix anti-bande blanche */
+        html {
+            background: #050505;
+            height: 100%;
         }
 
         body { 
-            background: radial-gradient(circle, #1a0a2a, #050505); 
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: radial-gradient(circle, #1a0a2a, #050505) no-repeat center center fixed;
+            background-size: cover;
             color: white; 
             font-family: 'Segoe UI', sans-serif; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 10px; 
-            margin: 0; 
-            min-height: 100vh; 
-            overflow-x: hidden;
+            overflow: hidden; /* Empêche le scroll inutile */
         }
 
         .stats-container { 
@@ -42,19 +47,19 @@
             background: rgba(0,0,0,0.85); 
             padding: 12px; 
             border-radius: 12px; 
-            margin-bottom: 20px; 
+            margin-top: 15px;
+            margin-bottom: 15px; 
             border: 1px solid #333; 
         }
         .stat-item { text-align: center; }
-        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--gold); display: block; }
+        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
         
         .grid-frame { 
             padding: 6px; 
             background: #111; 
             border-radius: 10px; 
             border: 2px solid #222; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
         }
         .machine { 
             display: grid; 
@@ -71,7 +76,6 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            overflow: hidden; 
         }
         .cell img { width: 85%; height: 85%; object-fit: contain; }
         
@@ -79,52 +83,48 @@
         .star-active { border-color: #00e5ff; box-shadow: inset 0 0 10px #00e5ff; background: #000a0a; }
         .blur { filter: blur(4px) opacity(0.3); }
         
-        /* Boutons */
+        /* Zone basse fixe */
+        .controls {
+            width: 100%;
+            margin-top: auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
         #spin-btn, #reset-btn { 
             width: 300px;
-            margin-top: 25px; 
             color: white; 
-            padding: 18px; 
             border: none; 
             border-radius: 12px; 
             font-size: 1.3rem; 
             font-weight: 800; 
-            cursor: pointer; 
-            transition: transform 0.1s, filter 0.2s;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            margin-bottom: 15px;
+            cursor: pointer;
         }
         #spin-btn { 
             background: linear-gradient(180deg, #ff4081, #880e4f); 
-            box-shadow: 0 4px 0 #560027, 0 8px 15px rgba(0,0,0,0.4); 
+            box-shadow: 0 4px 0 #560027; 
+            padding: 18px;
         }
-        #spin-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #560027; }
-        #spin-btn:disabled { background: #333; color: #555; box-shadow: none; cursor: not-allowed; transform: none; }
+        #spin-btn:disabled { background: #333; color: #555; box-shadow: none; }
         
-        #reset-btn { 
-            background: linear-gradient(180deg, #444, #222); 
-            border: 1px solid #555; 
-            display: none; 
-        }
+        #reset-btn { background: #444; padding: 18px; display: none; }
 
-        /* Log façon Terminal */
         .log { 
-            margin-top: auto; /* Pousse le log vers le bas */
-            margin-bottom: 10px;
-            width: 95%; 
-            max-width: 500px; 
-            background: rgba(0,0,0,0.9); 
-            padding: 12px; 
-            height: 90px; 
+            width: 100%; 
+            background: #000; 
+            padding: 10px 15px; 
+            height: 70px; 
             overflow-y: auto; 
             color: #00ff00; 
-            font-family: 'Courier New', monospace; 
+            font-family: monospace; 
             font-size: 0.8rem; 
-            border-top: 1px solid #222; 
-            border-radius: 4px;
-            box-shadow: inset 0 0 10px #000;
+            border-top: 1px solid #333; 
         }
-        .log b { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -139,10 +139,11 @@
         <div class="machine" id="machine"></div>
     </div>
 
-    <button id="spin-btn">Lancer</button>
-    <button id="reset-btn">Rejouer</button>
-
-    <div class="log" id="log">> Système prêt. Bonne chance.</div>
+    <div class="controls">
+        <button id="spin-btn">Lancer</button>
+        <button id="reset-btn">Rejouer</button>
+        <div class="log" id="log">> Système prêt (Extensions corrigées).</div>
+    </div>
 
     <script>
         const SYMBOLS_DATA = [
@@ -168,32 +169,26 @@
         async function spin() {
             if (state.spinning || state.rolls <= 0) return;
             state.spinning = true; state.rolls--; updateUI();
-            addLog("Lancement des rouleaux...");
+            addLog("Tirage...");
 
             let currentWin = null;
             let randGain = Math.random();
             let threshold = 0;
-            
             for (let win of SYMBOLS_DATA) {
                 threshold += win.proba;
-                if (randGain < threshold) {
-                    currentWin = win;
-                    break;
-                }
+                if (randGain < threshold) { currentWin = win; break; }
             }
 
             let grid = generateGridWithWin(currentWin);
-
+            
+            // CORRECTION DES EXTENSIONS ICI
             if (Math.random() < 0.12) injectBonus(grid, 'etoile.png', 'star');
-            if (Math.random() < 0.05) injectBonus(grid, 'diable.png', 'devil'); 
+            if (Math.random() < 0.05) injectBonus(grid, 'diable.jpg', 'devil'); 
             if (Math.random() < 0.06) injectBonus(grid, '+1.png', 'plus1');
             if (Math.random() < 0.02) injectBonus(grid, '+2.png', 'plus2');
 
             const cells = Array.from(document.getElementsByClassName('cell'));
-            cells.forEach(c => {
-                c.classList.remove('win-active', 'star-active');
-                c.innerHTML = ''; 
-            });
+            cells.forEach(c => { c.classList.remove('win-active', 'star-active'); c.innerHTML = ''; });
 
             for(let i=0; i<30; i++) {
                 const c = document.getElementById(`c-${i}`);
@@ -222,30 +217,17 @@
             if (winSymbol) {
                 const mode = Math.floor(Math.random() * 4); 
                 let r, c;
-                if(mode === 0) { // H
-                    r = Math.floor(Math.random()*5); c = Math.floor(Math.random()*4);
-                    g[r][c] = g[r][c+1] = g[r][c+2] = {...winSymbol, isWin: true};
-                } else if(mode === 1) { // V
-                    r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*6);
-                    g[r][c] = g[r+1][c] = g[r+2][c] = {...winSymbol, isWin: true};
-                } else if(mode === 2) { // \
-                    r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*4);
-                    g[r][c] = g[r+1][c+1] = g[r+2][c+2] = {...winSymbol, isWin: true};
-                } else { // /
-                    r = Math.floor(Math.random()*2) + 2; c = Math.floor(Math.random()*4);
-                    g[r][c] = g[r-1][c+1] = g[r-2][c+2] = {...winSymbol, isWin: true};
-                }
+                if(mode === 0) { r = Math.floor(Math.random()*5); c = Math.floor(Math.random()*4); g[r][c] = g[r][c+1] = g[r][c+2] = {...winSymbol, isWin: true}; }
+                else if(mode === 1) { r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*6); g[r][c] = g[r+1][c] = g[r+2][c] = {...winSymbol, isWin: true}; }
+                else if(mode === 2) { r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*4); g[r][c] = g[r+1][c+1] = g[r+2][c+2] = {...winSymbol, isWin: true}; }
+                else { r = Math.floor(Math.random()*2) + 2; c = Math.floor(Math.random()*4); g[r][c] = g[r-1][c+1] = g[r-2][c+2] = {...winSymbol, isWin: true}; }
             }
-
             for(let r=0; r<5; r++) {
                 for(let c=0; c<6; c++) {
-                    if (g[r][c]) continue;
-                    let possible = SYMBOLS_DATA.filter(s => {
-                        if (c >= 1 && g[r][c-1] && g[r][c-1].type === s.type) return false;
-                        if (r >= 1 && g[r-1][c] && g[r-1][c].type === s.type) return false;
-                        return true;
-                    });
-                    g[r][c] = {...possible[Math.floor(Math.random()*possible.length)], isWin: false};
+                    if (!g[r][c]) {
+                        let possible = SYMBOLS_DATA.filter(s => true);
+                        g[r][c] = {...possible[Math.floor(Math.random()*possible.length)], isWin: false};
+                    }
                 }
             }
             return g;
@@ -259,18 +241,17 @@
         function applyResults(grid, win) {
             grid.flat().forEach((s, i) => {
                 const cell = document.getElementById(`c-${i}`);
-                if(s.type === 'star') { state.stars++; addLog("<b>⭐ ETOILE</b> trouvée !"); cell.classList.add('star-active'); }
-                if(s.type === 'devil') { state.multiplier = 2; addLog("<b>😈 DIABLE</b> : Gains x2 !"); cell.classList.add('win-active'); }
-                if(s.type === 'plus1') { state.rolls += 1; addLog("<b>+1 Lancer</b> bonus"); }
-                if(s.type === 'plus2') { state.rolls += 2; addLog("<b>+2 Lancers</b> bonus"); }
+                if(s.type === 'star') { state.stars++; addLog("⭐ ETOILE !"); cell.classList.add('star-active'); }
+                if(s.type === 'devil') { state.multiplier = 2; addLog("😈 DIABLE (x2)"); cell.classList.add('win-active'); }
+                if(s.type === 'plus1') { state.rolls += 1; addLog("+1 Lancer"); }
+                if(s.type === 'plus2') { state.rolls += 2; addLog("+2 Lancers"); }
                 if(s.isWin) cell.classList.add('win-active');
             });
-
             if(win) {
                 state.time += win.val;
-                if(win.type === 'red') { state.abstinence = true; addLog("🔴 Alignement Rouge : <b>ABSTINENCE</b>"); }
-                else if(win.type === 'blue') { state.canEnjoy = true; addLog("🔵 Alignement Bleu : <b>JOUISSANCE</b>"); }
-                else { addLog(`Alignement validé : <b>+${win.val} min</b>`); }
+                if(win.type === 'red') { state.abstinence = true; addLog("🔴 ABSTINENCE"); }
+                else if(win.type === 'blue') { state.canEnjoy = true; addLog("🔵 JOUISSANCE"); }
+                else { addLog(`Gain: +${win.val}m`); }
             }
         }
 
@@ -290,8 +271,8 @@
 
         function endGame() {
             const f = state.time * state.multiplier;
-            let m = `<br><b>--- SESSION TERMINEE ---</b><br>Score : ${f} min.`;
-            if(state.abstinence) m += "<br>🛑 ABSTINENCE OBLIGATOIRE (24H).";
+            let m = `<br><b>FIN DE PARTIE</b><br>Résultat : ${f} min.`;
+            if(state.abstinence) m += "<br>🛑 ABSTINENCE (24H).";
             else m += (state.canEnjoy || state.stars >= 3) ? "<br>💦 JOUISSANCE AUTORISÉE !" : "<br>🔒 ORGASME INTERDIT.";
             addLog(m);
             document.getElementById('reset-btn').style.display = "block";
@@ -301,7 +282,7 @@
             state = { rolls: 4, stars: 0, time: 0, multiplier: 1, spinning: false, abstinence: false, canEnjoy: false };
             document.getElementById('reset-btn').style.display = "none";
             document.getElementById('spin-btn').style.display = "block";
-            document.getElementById('log').innerHTML = "> Nouvelle partie lancée.";
+            document.getElementById('log').innerHTML = "> Nouvelle partie.";
             initGrid();
             updateUI();
         }
