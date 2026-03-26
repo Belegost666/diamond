@@ -2,14 +2,26 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diamond - Mobile Ready</title>
     <style>
         :root { 
             --gold: #ffd700; 
             --cell: 80px; 
             --gap: 4px;   
         }
+        
+        /* Ajustements pour Mobile */
+        @media (max-width: 500px) {
+            :root {
+                --cell: 14vw; /* Taille adaptative selon l'écran */
+                --gap: 2px;
+            }
+            .stats-container { padding: 10px !important; }
+            .stat-val { font-size: 1.1rem !important; }
+            #spin-btn { width: 90%; padding: 15px !important; }
+        }
+
         body { 
             background: radial-gradient(circle, #1a0a2a, #050505); 
             color: white; 
@@ -17,31 +29,32 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 15px; 
+            padding: 10px; 
             margin: 0; 
             min-height: 100vh; 
+            overflow-x: hidden;
         }
         .stats-container { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            width: 100%; 
+            width: 95%; 
             max-width: 500px; 
             background: rgba(0,0,0,0.8); 
             padding: 15px; 
             border-radius: 15px; 
-            margin-bottom: 20px; 
+            margin-bottom: 15px; 
             border: 1px solid #444; 
         }
         .stat-item { text-align: center; }
-        .stat-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+        .stat-label { font-size: 0.6rem; color: #aaa; text-transform: uppercase; }
         .stat-val { font-size: 1.3rem; font-weight: bold; color: var(--gold); display: block; }
         
         .grid-frame { 
-            padding: 10px; 
+            padding: 6px; 
             background: #000; 
-            border-radius: 12px; 
+            border-radius: 8px; 
             border: 2px solid #333; 
-            box-shadow: 0 0 40px #000; 
+            box-shadow: 0 0 30px #000; 
         }
         .machine { 
             display: grid; 
@@ -60,24 +73,48 @@
             align-items: center; 
             justify-content: center; 
             overflow: hidden; 
-            transition: 0.3s; 
+            transition: 0.2s; 
         }
         .cell img { 
-            width: 95%; 
-            height: 95%; 
+            width: 90%; 
+            height: 90%; 
             object-fit: contain; 
         }
         
-        .win-active { border-color: var(--gold); box-shadow: inset 0 0 15px var(--gold); background: #1a1500; z-index: 5; transform: scale(1.02); }
-        .star-active { border-color: #00e5ff; box-shadow: inset 0 0 10px #00e5ff; background: #000a0a; }
-        .blur { filter: blur(6px) opacity(0.3); }
+        .win-active { border-color: var(--gold); box-shadow: inset 0 0 10px var(--gold); background: #1a1500; z-index: 5; }
+        .star-active { border-color: #00e5ff; box-shadow: inset 0 0 8px #00e5ff; background: #000a0a; }
+        .blur { filter: blur(4px) opacity(0.4); }
         
-        #spin-btn, #reset-btn { margin-top: 25px; color: white; padding: 18px 60px; border: none; border-radius: 50px; font-size: 1.4rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        #spin-btn, #reset-btn { 
+            margin-top: 20px; 
+            color: white; 
+            padding: 15px 50px; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+            touch-action: manipulation; /* Optimise le clic sur mobile */
+        }
         #spin-btn { background: linear-gradient(145deg, #ff4081, #c2185b); box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3); }
         #spin-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
         #reset-btn { background: linear-gradient(145deg, #444, #111); border: 1px solid #666; display: none; }
         
-        .log { margin-top: 20px; width: 100%; max-width: 500px; background: #000; padding: 12px; height: 100px; overflow-y: auto; color: #39ff14; font-family: monospace; font-size: 0.85rem; border: 1px solid #333; border-radius: 8px; }
+        .log { 
+            margin-top: 15px; 
+            width: 95%; 
+            max-width: 500px; 
+            background: #000; 
+            padding: 10px; 
+            height: 80px; 
+            overflow-y: auto; 
+            color: #39ff14; 
+            font-family: monospace; 
+            font-size: 0.75rem; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+        }
     </style>
 </head>
 <body>
@@ -95,7 +132,7 @@
     <button id="spin-btn">LANCER</button>
     <button id="reset-btn">REJOUER</button>
 
-    <div class="log" id="log">>Prêt.</div>
+    <div class="log" id="log">> Interface mobile activée.</div>
 
     <script>
         const SYMBOLS_DATA = [
@@ -124,7 +161,6 @@
             addLog("Tirage...");
 
             let currentWin = null;
-            let bonusFound = false;
             let randGain = Math.random();
             let threshold = 0;
             
@@ -138,10 +174,11 @@
 
             let grid = generateGridWithWin(currentWin);
 
-            if (Math.random() < 0.12) { injectBonus(grid, 'etoile.png', 'star'); bonusFound = true; }
-            if (Math.random() < 0.04) { injectBonus(grid, 'diable.png', 'devil'); bonusFound = true; } 
-            if (Math.random() < 0.06) { injectBonus(grid, '+1.png', 'plus1'); bonusFound = true; }
-            if (Math.random() < 0.02) { injectBonus(grid, '+2.png', 'plus2'); bonusFound = true; }
+            // Injections bonus
+            if (Math.random() < 0.12) injectBonus(grid, 'etoile.jpg', 'star');
+            if (Math.random() < 0.04) injectBonus(grid, 'diable.jpg', 'devil'); 
+            if (Math.random() < 0.06) injectBonus(grid, '+1.jpg', 'plus1');
+            if (Math.random() < 0.02) injectBonus(grid, '+2.jpg', 'plus2');
 
             const cells = Array.from(document.getElementsByClassName('cell'));
             cells.forEach(c => {
@@ -162,7 +199,7 @@
                         c.innerText = sym.char;
                     }
                     c.classList.remove('blur');
-                }, i * 15);
+                }, i * 12); // Accélération légère pour mobile
             }
 
             setTimeout(() => {
@@ -170,7 +207,7 @@
                 state.spinning = false;
                 updateUI();
                 if(state.rolls <= 0) endGame();
-            }, 800);
+            }, 700);
         }
 
         function generateGridWithWin(winSymbol) {
@@ -199,8 +236,6 @@
                     let possible = SYMBOLS_DATA.filter(s => {
                         if (c >= 1 && g[r][c-1] && g[r][c-1].type === s.type) return false;
                         if (r >= 1 && g[r-1][c] && g[r-1][c].type === s.type) return false;
-                        if (r >= 1 && c >= 1 && g[r-1][c-1] && g[r-1][c-1].type === s.type) return false;
-                        if (r >= 1 && c < 5 && g[r-1][c+1] && g[r-1][c+1].type === s.type) return false;
                         return true;
                     });
                     g[r][c] = {...possible[Math.floor(Math.random()*possible.length)], isWin: false};
@@ -212,8 +247,7 @@
         function injectBonus(grid, imgSrc, type) {
             let r = Math.floor(Math.random()*5); let c = Math.floor(Math.random()*6);
             if (!grid[r][c].isWin) {
-                if(imgSrc.includes('.')) grid[r][c] = { img: imgSrc, type: type, isWin: false, isBonus: true };
-                else grid[r][c] = { char: imgSrc, type: type, isWin: false, isBonus: true };
+                grid[r][c] = { img: imgSrc, type: type, isWin: false, isBonus: true };
             }
         }
 
@@ -229,15 +263,9 @@
 
             if(win) {
                 state.time += win.val;
-                if(win.type === 'red') {
-                    state.abstinence = true;
-                    addLog(`Gain: ABSTINENCE ACTIVÉE`);
-                } else if(win.type === 'blue') {
-                    state.canEnjoy = true;
-                    addLog(`Gain: 💦 JOUISSANCE DÉBLOQUÉE`);
-                } else {
-                    addLog(`Gain: +${win.val}m`);
-                }
+                if(win.type === 'red') { state.abstinence = true; addLog(`Gain: ${win.char} (🛑 ABSTINENCE)`); }
+                else if(win.type === 'blue') { state.canEnjoy = true; addLog(`Gain: ${win.char} (💦 JOUISSANCE)`); }
+                else { addLog(`Gain: ${win.char} (+${win.val}m)`); }
             }
         }
 
@@ -254,8 +282,8 @@
         function endGame() {
             const f = state.time * state.multiplier;
             let m = `<br><strong style="color:var(--gold)">SESSION TERMINEE</strong><br>Temps : ${f} min.`;
-            if(state.abstinence) m += "<br>🛑 ABSTINENCE PENDANT 24 HEURES.";
-            else m += (state.canEnjoy || state.stars >= 3) ? "<br>💦 VOUS AVEZ LE DROIT DE JOUIR 💦" : "<br>🔒 ORGASME INTERDIT.";
+            if(state.abstinence) m += "<br>🛑 ABSTINENCE 24H.";
+            else m += (state.canEnjoy || state.stars >= 3) ? "<br>💦 JOUISSANCE AUTORISÉE ! 💦" : "<br>🔒 ORGASME INTERDIT.";
             addLog(m);
             document.getElementById('reset-btn').style.display = "block";
         }
