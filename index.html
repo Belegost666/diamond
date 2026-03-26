@@ -3,67 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Diamond - V25</title>
+    <title>Diamond - V26</title>
     <style>
         :root { 
             --gold: #ffd700; 
-            --cell: 80px; 
+            --cell: 70px; 
             --gap: 4px;   
         }
         
         @media (max-width: 500px) {
             :root {
-                --cell: 14.5vw;
-                --gap: 3px;
+                --cell: 13vw; /* Un peu plus petit pour tout remonter */
+                --gap: 2px;
             }
-            .stats-container { padding: 10px !important; margin-bottom: 10px !important; }
-            #spin-btn, #reset-btn { width: 90% !important; padding: 14px !important; margin-top: 10px !important; }
-            .log { height: 75px !important; width: 90% !important; }
+            .stats-container { padding: 8px !important; margin-bottom: 8px !important; }
+            #spin-btn, #reset-btn { width: 85% !important; padding: 12px !important; font-size: 1.1rem !important; }
+            .log { height: 60px !important; width: 85% !important; font-size: 0.7rem !important; }
         }
 
-        /* Bloque le défilement et la bande blanche */
         html, body {
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
             margin: 0;
             padding: 0;
             background: #000;
             overflow: hidden;
-            position: fixed; /* Force le maintien en place */
+            position: fixed;
+            touch-action: none; /* Bloque le scroll accidentel */
         }
 
         body { 
-            background: radial-gradient(circle, #1a0a2a, #050505) no-repeat center center;
-            background-size: cover;
+            background: radial-gradient(circle, #1a0a2a, #050505);
             color: white; 
             font-family: 'Segoe UI', sans-serif; 
             display: flex; 
             flex-direction: column; 
-            align-items: center; 
-            padding-top: env(safe-area-inset-top);
+            align-items: center;
+            justify-content: flex-start; /* Aligne vers le haut */
+            padding-top: 10px;
         }
 
         .stats-container { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            width: 95%; 
-            max-width: 500px; 
-            background: rgba(0,0,0,0.85); 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-top: 5px;
-            margin-bottom: 15px; 
+            width: 90%; 
+            max-width: 450px; 
+            background: rgba(0,0,0,0.8); 
+            padding: 10px; 
+            border-radius: 10px; 
+            margin-bottom: 10px; 
             border: 1px solid #333; 
         }
         .stat-item { text-align: center; }
-        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; }
-        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; }
+        .stat-val { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         
         .grid-frame { 
-            padding: 6px; 
+            padding: 4px; 
             background: #111; 
-            border-radius: 10px; 
-            border: 2px solid #222; 
+            border-radius: 8px; 
+            border: 1px solid #333; 
         }
         .machine { 
             display: grid; 
@@ -75,6 +74,217 @@
             width: var(--cell); 
             height: var(--cell); 
             background: #000; 
+            border: 1px solid #1a1a1a; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .cell img { width: 80%; height: 80%; object-fit: contain; }
+        
+        .win-active { border-color: var(--gold); box-shadow: inset 0 0 10px var(--gold); background: #1a1500; }
+        .star-active { border-color: #00e5ff; box-shadow: inset 0 0 8px #00e5ff; background: #000a0a; }
+        .blur { filter: blur(4px) opacity(0.3); }
+        
+        /* Bloc UI centralisé pour éviter d'être trop bas */
+        .bottom-ui {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px; /* Espace fixe sous la grille */
+        }
+
+        #spin-btn, #reset-btn { 
+            width: 280px;
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 0 #560027;
+        }
+        #spin-btn { background: linear-gradient(180deg, #ff4081, #880e4f); padding: 15px; }
+        #spin-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #560027; }
+        #spin-btn:disabled { background: #333; color: #555; box-shadow: none; }
+        
+        #reset-btn { background: #444; padding: 15px; display: none; box-shadow: 0 4px 0 #222; }
+
+        .log { 
+            width: 90%; 
+            max-width: 450px;
+            background: rgba(0,0,0,0.9); 
+            padding: 8px; 
+            height: 60px; 
+            overflow-y: auto; 
+            color: #00ff00; 
+            font-family: monospace; 
+            border: 1px solid #222; 
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stats-container">
+        <div class="stat-item"><span class="stat-label">Lancers</span><span class="stat-val" id="rolls">4</span></div>
+        <div class="stat-item"><span class="stat-label">Étoiles</span><span class="stat-val" id="stars">0/3</span></div>
+        <div class="stat-item"><span class="stat-label">Temps</span><span class="stat-val" id="time">0 min</span></div>
+    </div>
+
+    <div class="grid-frame">
+        <div class="machine" id="machine"></div>
+    </div>
+
+    <div class="bottom-ui">
+        <button id="spin-btn">Lancer</button>
+        <button id="reset-btn">Rejouer</button>
+        <div class="log" id="log">> Prêt.</div>
+    </div>
+
+    <script>
+        const SYMBOLS_DATA = [
+            { type: 'pink',   img: 'rose.png',   val: 2,  proba: 0.25 },
+            { type: 'green',  img: 'vert.png',   val: 5,  proba: 0.15 },
+            { type: 'orange', img: 'orange.png', val: 12, proba: 0.12 },
+            { type: 'purple', img: 'violet.png', val: 20, proba: 0.08 },
+            { type: 'red',    img: 'rouge.png',  val: 0,  proba: 0.05 },
+            { type: 'blue',   img: 'bleu.png',   val: 0,  proba: 0.05 }
+        ];
+
+        let state = { rolls: 4, stars: 0, time: 0, multiplier: 1, spinning: false, abstinence: false, canEnjoy: false };
+
+        function initGrid() {
+            const m = document.getElementById('machine'); m.innerHTML = '';
+            for(let i=0; i<30; i++) {
+                const c = document.createElement('div'); c.className = 'cell'; c.id = `c-${i}`;
+                m.appendChild(c);
+            }
+        }
+        initGrid();
+
+        async function spin() {
+            if (state.spinning || state.rolls <= 0) return;
+            state.spinning = true; state.rolls--; updateUI();
+            addLog("Tirage...");
+
+            let currentWin = null;
+            let threshold = 0; let rand = Math.random();
+            for (let win of SYMBOLS_DATA) {
+                threshold += win.proba;
+                if (rand < threshold) { currentWin = win; break; }
+            }
+
+            let grid = generateGridWithWin(currentWin);
+            
+            // Correction PNG/JPG
+            if (Math.random() < 0.12) injectBonus(grid, 'etoile.png', 'star');
+            if (Math.random() < 0.05) injectBonus(grid, 'diable.jpg', 'devil'); 
+            if (Math.random() < 0.06) injectBonus(grid, '+1.png', 'plus1');
+            if (Math.random() < 0.02) injectBonus(grid, '+2.png', 'plus2');
+
+            const cells = Array.from(document.getElementsByClassName('cell'));
+            cells.forEach(c => { c.classList.remove('win-active', 'star-active'); c.innerHTML = ''; });
+
+            for(let i=0; i<30; i++) {
+                const c = document.getElementById(`c-${i}`);
+                c.classList.add('blur');
+                setTimeout(() => {
+                    const sym = grid[Math.floor(i/6)][i%6];
+                    if(sym.img) {
+                        const img = document.createElement('img');
+                        img.src = sym.img;
+                        c.appendChild(img);
+                    }
+                    c.classList.remove('blur');
+                }, i * 12);
+            }
+
+            setTimeout(() => {
+                applyResults(grid, currentWin);
+                state.spinning = false;
+                updateUI();
+                if(state.rolls <= 0) endGame();
+            }, 700);
+        }
+
+        function generateGridWithWin(winSymbol) {
+            let g = Array(5).fill().map(() => Array(6).fill(null));
+            if (winSymbol) {
+                const mode = Math.floor(Math.random() * 4); 
+                let r, c;
+                if(mode === 0) { r = Math.floor(Math.random()*5); c = Math.floor(Math.random()*4); g[r][c] = g[r][c+1] = g[r][c+2] = {...winSymbol, isWin: true}; }
+                else if(mode === 1) { r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*6); g[r][c] = g[r+1][c] = g[r+2][c] = {...winSymbol, isWin: true}; }
+                else if(mode === 2) { r = Math.floor(Math.random()*3); c = Math.floor(Math.random()*4); g[r][c] = g[r+1][c+1] = g[r+2][c+2] = {...winSymbol, isWin: true}; }
+                else { r = Math.floor(Math.random()*2) + 2; c = Math.floor(Math.random()*4); g[r][c] = g[r-1][c+1] = g[r-2][c+2] = {...winSymbol, isWin: true}; }
+            }
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<6; c++) {
+                    if (!g[r][c]) g[r][c] = {...SYMBOLS_DATA[Math.floor(Math.random()*6)], isWin: false};
+                }
+            }
+            return g;
+        }
+
+        function injectBonus(grid, imgSrc, type) {
+            let r = Math.floor(Math.random()*5); let c = Math.floor(Math.random()*6);
+            if (!grid[r][c].isWin) grid[r][c] = { img: imgSrc, type: type, isWin: false };
+        }
+
+        function applyResults(grid, win) {
+            grid.flat().forEach((s, i) => {
+                const cell = document.getElementById(`c-${i}`);
+                if(s.type === 'star') { state.stars++; addLog("⭐ Etoile !"); cell.classList.add('star-active'); }
+                if(s.type === 'devil') { state.multiplier = 2; addLog("😈 Diable (x2)"); cell.classList.add('win-active'); }
+                if(s.type === 'plus1') { state.rolls += 1; addLog("+1 Lancer"); }
+                if(s.type === 'plus2') { state.rolls += 2; addLog("+2 Lancers"); }
+                if(s.isWin) cell.classList.add('win-active');
+            });
+            if(win) {
+                state.time += win.val;
+                if(win.type === 'red') { state.abstinence = true; addLog("🔴 Abstinence"); }
+                else if(win.type === 'blue') { state.canEnjoy = true; addLog("🔵 Jouissance"); }
+                else { addLog(`+${win.val}m`); }
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('rolls').innerText = state.rolls;
+            document.getElementById('stars').innerText = state.stars + "/3";
+            document.getElementById('time').innerText = (state.time * state.multiplier) + " min";
+            document.getElementById('spin-btn').disabled = state.spinning || state.rolls <= 0;
+            if(state.rolls <= 0 && !state.spinning) document.getElementById('spin-btn').style.display = "none";
+        }
+
+        function addLog(t) { 
+            const l = document.getElementById('log'); 
+            l.innerHTML += `<br>> ${t}`; 
+            l.scrollTop = l.scrollHeight; 
+        }
+
+        function endGame() {
+            const f = state.time * state.multiplier;
+            addLog(`<br><b>TOTAL : ${f} min.</b>`);
+            if(state.abstinence) addLog("🛑 ABSTINENCE (24H)");
+            else addLog((state.canEnjoy || state.stars >= 3) ? "💦 JOUISSANCE !" : "🔒 INTERDIT.");
+            document.getElementById('reset-btn').style.display = "block";
+        }
+
+        function resetGame() {
+            state = { rolls: 4, stars: 0, time: 0, multiplier: 1, spinning: false, abstinence: false, canEnjoy: false };
+            document.getElementById('reset-btn').style.display = "none";
+            document.getElementById('spin-btn').style.display = "block";
+            document.getElementById('log').innerHTML = "> Nouvelle partie.";
+            initGrid();
+            updateUI();
+        }
+
+        document.getElementById('spin-btn').addEventListener('click', spin);
+        document.getElementById('reset-btn').addEventListener('click', resetGame);
+    </script>
+</body>
+</html>            background: #000; 
             border-radius: 4px; 
             border: 1px solid #1a1a1a; 
             display: flex; 
